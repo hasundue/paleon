@@ -1,0 +1,8 @@
+{
+  "tasks": {
+    "cache": "deno cache ./**/*.ts",
+    "test": "deno test -A --unstable",
+    "dev": "deno run -A --unstable --watch main.ts"
+  },
+  "lock": false
+}
