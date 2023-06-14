@@ -15,7 +15,7 @@ describe("Log", () => {
   let log: Log<string>;
 
   beforeAll(async () => {
-    log = await Log.on("test");
+    log = await Log.open("test");
     await log.erase();
   });
 
@@ -37,15 +37,6 @@ describe("Log", () => {
     assertEquals(records[0].body, "hello");
   });
 
-  it("should write a record with a hash", async () => {
-    await log.write("hello", { hash: "hash" });
-  });
-
-  it("should read multiple records", async () => {
-    const records = await collect(log.read());
-    assertEquals(records.length, 2);
-  });
-
   it("should write records with a timestamp", async () => {
     await log.write("hello", { time: 0 });
     await log.write("hello", { time: 1 });
@@ -56,6 +47,11 @@ describe("Log", () => {
       log.read({ since: new Date(0), until: new Date(1) }),
     );
     assertEquals(records.length, 1);
+  });
+
+  it("should read multiple records", async () => {
+    const records = await collect(log.read());
+    assertEquals(records.length, 3);
   });
 
   it("should erase a log", async () => {
