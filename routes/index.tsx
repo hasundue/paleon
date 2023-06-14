@@ -1,7 +1,7 @@
 import { Head } from "$fresh/runtime.ts";
 import { Handlers } from "$fresh/server.ts";
 import { Log } from "../mod.ts";
-import Records from "../islands/Records.tsx";
+import LogView from "../islands/LogView.tsx";
 
 export const handler: Handlers = {
   async GET(_req, ctx) {
@@ -15,19 +15,27 @@ export const handler: Handlers = {
 };
 
 export default function Home() {
+  const id = Deno.env.get("DEPLOYMENT_ID") ?? "dev";
+
   return (
     <>
       <Head>
         <title>Paleon</title>
+        <link
+          rel="stylesheet"
+          href="https://esm.sh/simpledotcss@v2.2.0/simple.min.css"
+        />
       </Head>
-      <div>
-        <h1>Paleon</h1>
-        <p>
-          A demo app that stores application logs in Deno KV.
-        </p>
-        <h2>Logs</h2>
-        <Records project="paleon" id="dev" />
-      </div>
+      <body>
+        <header>
+          <h1>Paleon</h1>
+          <p>A demo app that stores application logs in Deno KV.</p>
+        </header>
+        <div>
+          <h3>Live logs</h3>
+          <LogView project="paleon" id={id} />
+        </div>
+      </body>
     </>
   );
 }
