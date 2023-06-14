@@ -1,3 +1,4 @@
+import { format } from "https://deno.land/std@0.191.0/datetime/format.ts";
 import {
   ServerSentEvent,
   ServerSentEventStreamTarget,
@@ -14,6 +15,11 @@ export const handler = (req: Request, _ctx: HandlerContext) => {
   }
 };
 
+export type EventData = {
+  body: string;
+  timestamp: string;
+};
+
 const get = async (_req: Request) => {
   const target = new ServerSentEventStreamTarget();
 
@@ -23,12 +29,16 @@ const get = async (_req: Request) => {
   await log.read().pipeTo(
     new WritableStream({
       write(record) {
-        target.dispatchEvent(
-          new ServerSentEvent(
-            "message",
-            { data: record },
-          ),
+        const ev = new ServerSentEvent(
+          "message",
+          {
+            data: {
+              body: record.body,
+              timestamp: format(new Date(record.time), "yyyy-MM-dd HH:mm:ss"),
+            },
+          },
         );
+        target.dispatchEvent(ev);
       },
     }),
     { signal: aborter.signal },

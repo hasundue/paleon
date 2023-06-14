@@ -1,6 +1,6 @@
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
-import { LogRecord } from "../mod.ts";
+import { EventData } from "../routes/api/records.ts";
 
 interface RecordsProps {
   project: string;
@@ -8,27 +8,27 @@ interface RecordsProps {
 }
 
 export default function Records(props: RecordsProps) {
-  const records = useSignal<LogRecord[]>([]);
+  const records = useSignal<EventData[]>([]);
 
   useEffect(() => {
+    records.value = [];
     const source = new EventSource(
       new URL("/api/records", window.location.href),
     );
     source.onmessage = (ev) => {
-      const record = JSON.parse(ev.data) as LogRecord;
+      const record = JSON.parse(ev.data) as EventData;
       records.value = [...records.value, record];
     };
   }, [props]);
 
   return (
     <div>
-      <h2>Logs</h2>
       {records.value.length > 0 &&
         (
           <ul>
             {records.value.map((record) => (
               <li>
-                {record.body} at {new Date(record.time).toString()}
+                {record.body} at {record.timestamp}
               </li>
             ))}
           </ul>

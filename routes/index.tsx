@@ -25,6 +25,7 @@ export default function Home() {
         <p>
           A demo app that stores application logs in Deno KV.
         </p>
+        <h2>Logs</h2>
         <Records project="paleon" id="dev" />
       </div>
     </>
