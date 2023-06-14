@@ -1,16 +1,16 @@
 export type Log<T = unknown> = {
   readonly subject: Deno.KvKey | Deno.KvKeyPart;
-  read(options?: ReadOptions): ReadableStream<Record<T>>;
+  read(options?: ReadOptions): ReadableStream<LogRecord<T>>;
   write(value: T, options?: WriteOptions): Promise<Deno.KvCommitResult>;
   erase(): Promise<void>;
   close(): void;
 };
 
-export type ReadOptions = { since?: Date; until?: Date };
+export type ReadOptions = { since?: Date; until?: Date; limit?: number };
 export type WriteOptions = { time?: number };
 
-export type Record<T = unknown> = {
-  date: Date;
+export type LogRecord<T = unknown> = {
+  time: number;
   body: T;
 };
 
@@ -33,14 +33,15 @@ export const Log = {
       read(options?: ReadOptions) {
         const start = [...prefix, options?.since?.getTime() ?? 0];
         const end = [...prefix, options?.until?.getTime() ?? Infinity];
+        const limit = options?.limit ?? 10;
 
-        const iter = kv.list<T>({ start, end });
+        const iter = kv.list<T>({ start, end }, { limit, reverse: true });
 
-        return new ReadableStream<Record<T>>({
+        return new ReadableStream<LogRecord<T>>({
           async start(controller) {
             for await (const { key, value } of iter) {
               controller.enqueue({
-                date: new Date(key[1] as number),
+                time: Number(key[prefix.length]),
                 body: value,
               });
             }

@@ -1,0 +1,43 @@
+import {
+  ServerSentEvent,
+  ServerSentEventStreamTarget,
+} from "https://deno.land/std@0.191.0/http/server_sent_event.ts";
+import { HandlerContext } from "$fresh/server.ts";
+import { Log } from "../../mod.ts";
+
+export const handler = (req: Request, _ctx: HandlerContext) => {
+  switch (req.method) {
+    case "GET":
+      return get(req);
+    default:
+      return new Response("Method not allowed", { status: 405 });
+  }
+};
+
+const get = async (_req: Request) => {
+  const target = new ServerSentEventStreamTarget();
+
+  const log = await Log.open<string>(["paleon", "dev"]);
+  const aborter = new AbortController();
+
+  await log.read().pipeTo(
+    new WritableStream({
+      write(record) {
+        target.dispatchEvent(
+          new ServerSentEvent(
+            "message",
+            { data: record },
+          ),
+        );
+      },
+    }),
+    { signal: aborter.signal },
+  );
+
+  target.addEventListener("close", () => {
+    aborter.abort();
+    log.close();
+  });
+
+  return target.asResponse();
+};

@@ -1,8 +1,13 @@
 {
+  "lock": false,
   "tasks": {
     "cache": "deno cache ./**/*.ts",
     "test": "deno test -A --unstable",
-    "dev": "deno run -A --unstable --watch main.ts"
+    "start": "deno run -A --unstable --watch=static/,routes/ dev.ts"
   },
-  "lock": false
+  "importMap": "./import_map.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  }
 }
