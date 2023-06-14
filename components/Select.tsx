@@ -4,6 +4,7 @@ import { IS_BROWSER } from "$fresh/runtime.ts";
 type SelectOption = {
   value: string;
   text?: string;
+  selected?: true;
 };
 
 type SelectProps = {
@@ -23,7 +24,10 @@ export function Select(props: SelectProps) {
       <option disabled>{props.name}</option>
 
       {options.map((it) => (
-        <option value={it.value} >{it.text ?? it.value}</option>
+        <option 
+          value={it.value}
+          selected={it.selected}
+        >{it.text ?? it.value}</option>
       ))}
     </select>
   );

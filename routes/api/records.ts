@@ -1,10 +1,10 @@
-import { format } from "https://deno.land/std@0.191.0/datetime/format.ts";
+import { format } from "$std/datetime/format.ts";
 import {
   ServerSentEvent,
   ServerSentEventStreamTarget,
-} from "https://deno.land/std@0.191.0/http/server_sent_event.ts";
+} from "$std/http/server_sent_event.ts";
 import { HandlerContext } from "$fresh/server.ts";
-import { Log } from "../../mod.ts";
+import { Log } from "/mod.ts";
 
 export const handler = (req: Request, _ctx: HandlerContext) => {
   switch (req.method) {

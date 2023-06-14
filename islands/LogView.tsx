@@ -1,17 +1,21 @@
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
-import { EventData } from "../routes/api/records.ts";
-import { Select } from "../components/Select.tsx";
+import { RecordItem } from "/shared/api.ts";
+import { Select } from "/components/Select.tsx";
 
 interface RecordsProps {
-  project: string;
-  id: string;
-  since?: Date;
-  until?: Date;
+  init: RecordItem[];
+  options: {
+    project: string;
+    id: string;
+    since?: Date;
+    until?: Date;
+  };
 }
 
 export default function LogView(props: RecordsProps) {
-  const records = useSignal<EventData[]>([]);
+  const options = useSignal(props);
+  const records = useSignal<RecordItem[]>([]);
 
   useEffect(() => {
     records.value = [];
@@ -19,10 +23,10 @@ export default function LogView(props: RecordsProps) {
       new URL("/api/records", window.location.href),
     );
     source.onmessage = (ev) => {
-      const record = JSON.parse(ev.data) as EventData;
+      const record = JSON.parse(ev.data) as RecordItem;
       records.value = [...records.value, record];
     };
-  }, [props]);
+  }, [options]);
 
   return (
     <>
@@ -42,22 +46,26 @@ export default function LogView(props: RecordsProps) {
         <Select
           name="Period"
           options={[
-            { value: "day", text: "Day" },
+            { value: "hour", text: "Hour" },
+            { value: "day", text: "Day", selected: true },
+            { value: "week", text: "Week" },
+            { value: "month", text: "Month" },
           ]}
         />
       </div>
 
-      {records.value.length > 0 &&
-        records.value.map((record) => (
-          <pre style="padding-top: 0.1rem; padding-bottom: 0.1rem">
-            <code>
-              <p>{record.body}</p>
-              <p style="color: grey; font-size: 0.96rem; text-align: right">
-                {record.timestamp} @ region
-              </p>
-            </code>
-          </pre>
-        ))}
+      {records.value.map((record) => (
+        <pre style="padding-top: 0.1rem; padding-bottom: 0.1rem">
+          <code>
+            <p>
+              {record.body}
+            </p>
+            <p style="color: grey; font-size: 0.96rem; text-align: right">
+              {record.timestamp} @ region
+            </p>
+          </code>
+        </pre>
+      ))}
     </>
   );
 }
