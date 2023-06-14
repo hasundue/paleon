@@ -21,6 +21,8 @@ export const Log = {
     const encoder = new TextEncoder();
 
     return {
+      subject,
+
       async write(
         value: T,
         options?: { time?: number; hash?: string },
