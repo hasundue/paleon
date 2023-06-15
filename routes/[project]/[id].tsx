@@ -34,6 +34,7 @@ export const handler: Handlers = {
       region: params.get("region") ?? "all",
       level: params.get("level") as LogLevel | null ?? "info",
       period: params.get("period") as LogPeriod | null ?? "day",
+      limit: Number(params.get("limit") ?? "10"),
       reverse: params.get("reverse") === "false" ? false : true,
     };
 
@@ -64,7 +65,6 @@ export const handler: Handlers = {
       target.addEventListener("close", () => {
         ch.close();
       });
-
       target.addEventListener("error", () => {
         ch.close();
       });
@@ -74,12 +74,17 @@ export const handler: Handlers = {
 
     // SSR of initial data
     const storage = await PaleonStorage.open<PaleonAppRecord>([project, id]);
+    let count = 0;
 
     const items = storage.read({ since: _options.since }).pipeThrough(
       new TransformStream<PaleonAppRecord, PaleonAppRecordItem>({
         transform(record, controller) {
           if (record.level >= _options.level) {
+            count++;
             controller.enqueue(PaleonAppRecordItem.from(record));
+            if (count >= options.limit) {
+              controller.terminate();
+            }
           }
         },
       }),

@@ -19,8 +19,9 @@ export type LogPeriod = typeof LOG_PERIODS[number];
 
 export interface LogViewOptions {
   region: string;
-  period: LogPeriod;
   level: LogLevel;
+  limit: number;
+  period: LogPeriod;
   reverse: boolean;
 }
 

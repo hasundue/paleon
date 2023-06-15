@@ -37,7 +37,6 @@ export default function LogView(props: LogViewProps) {
       <form id="options" method="GET">
         <Select
           name="region"
-          label="Region"
           options={[
             { value: "all", text: "All regions" },
           ]}
@@ -48,18 +47,24 @@ export default function LogView(props: LogViewProps) {
           label="Log Level"
           options={LOG_LEVELS.map((level) => ({
             value: level,
-            text: level[0].toUpperCase() + level.slice(1),
             selected: props.options.level === level ? true : undefined,
           }))}
           onChange={submit}
         />
         <Select
           name="period"
-          label="Period"
           options={LOG_PERIODS.map((period) => ({
             value: period,
-            text: period[0].toUpperCase() + period.slice(1),
             selected: props.options.period === period ? true : undefined,
+          }))}
+          onChange={submit}
+        />
+        <Select
+          name="limit"
+          label="Limit"
+          options={[10, 20, 50, 100].map((limit) => ({
+            value: limit.toString(),
+            selected: props.options.limit === limit ? true : undefined,
           }))}
           onChange={submit}
         />

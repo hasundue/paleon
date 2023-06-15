@@ -7,7 +7,7 @@ type SelectProps = {
 } & JSX.HTMLAttributes<HTMLSelectElement>;
 
 type SelectOption = {
-  value: string | number;
+  value: string;
   text?: string;
   selected?: true;
 };
@@ -21,7 +21,9 @@ export function Select(props: SelectProps) {
       {...props}
       disabled={!IS_BROWSER || props.disabled}
     >
-      <option disabled>{props.label ?? props.name}</option>
+      <option disabled>
+        {props.label ?? props.name[0].toUpperCase() + props.name.slice(1)}
+      </option>
 
       {options.map((it) => (
         <option
