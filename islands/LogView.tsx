@@ -10,6 +10,8 @@ import {
 import { Select } from "../components/Select.tsx";
 
 export default function LogView(props: LogViewProps) {
+  const project = useSignal(props.project);
+  const id = useSignal(props.id);
   const items = useSignal<PaleonAppRecordItem[]>(props.init);
 
   useEffect(() => {
@@ -34,6 +36,30 @@ export default function LogView(props: LogViewProps) {
 
   return (
     <>
+      <form
+        id="props"
+        method="GET"
+        action={`../../${project.value}/${id.value}`}
+      >
+        <input
+          type="text"
+          style="margin-right: 0.48rem"
+          name="project"
+          placeholder="Project Name"
+          value={props.project === "paleon" ? "" : project.value}
+          onChange={(e) => project.value = (e.target as HTMLInputElement).value}
+        />
+        <input
+          type="text"
+          style="margin-right: 0.48rem"
+          name="id"
+          placeholder="Deployment ID"
+          value={props.project === "paleon" ? "" : id.value}
+          onChange={(e) => id.value = (e.target as HTMLInputElement).value}
+        />
+        <input type="submit" style="display: none;" />
+      </form>
+
       <form id="options" method="GET">
         <Select
           name="region"

@@ -80,6 +80,7 @@ export const handler: Handlers = {
       since: _options.since,
       reverse: options.reverse,
     });
+
     const items = readable.pipeThrough(
       new TransformStream<PaleonAppRecord, PaleonAppRecordItem>({
         transform(record, controller) {
