@@ -1,7 +1,7 @@
 #!/usr/bin/env -S deno run -A --watch=static/,routes/
 
-// import { Log } from "./lib/kvlog/mod.ts";
-// await (await Log.open<string>(["paleon", "dev"])).erase();
+import { PaleonStorage } from "./mod.ts";
+await (await PaleonStorage.open(["paleon", "dev"])).erase();
 
 import dev from "$fresh/dev.ts";
 

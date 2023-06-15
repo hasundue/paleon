@@ -1,18 +1,20 @@
 import { assert, assertEquals } from "$std/testing/asserts.ts";
 import { afterAll, beforeAll, describe, it } from "$std/testing/bdd.ts";
 import { collect } from "$streamtools/mod.ts";
-import { Paleon } from "/mod.ts";
+import { PaleonStorage } from "/mod.ts";
 
 type TestLogRecord = {
   datetime: Date;
   msg: string;
 };
 
-describe("Paleon", () => {
-  let paleon: Paleon<TestLogRecord>;
+describe("PaleonStorage", () => {
+  let paleon: PaleonStorage<TestLogRecord>;
 
   beforeAll(async () => {
-    paleon = await Paleon.open<{ datetime: Date; msg: string }>("mod_test");
+    paleon = await PaleonStorage.open<{ datetime: Date; msg: string }>(
+      "mod_test",
+    );
     await paleon.erase();
   });
 

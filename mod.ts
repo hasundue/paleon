@@ -2,29 +2,40 @@ import { BaseHandler, HandlerOptions } from "$std/log/handlers.ts";
 import { type LevelName } from "$std/log/levels.ts";
 import { type LogRecord } from "$std/log/logger.ts";
 
-export type Paleon<T extends PaleonRecord = PaleonRecord> = {
+export type PaleonStorage<
+  T extends PaleonStorageRecord = PaleonStorageRecord,
+> = {
   readonly subject: Deno.KvKey | Deno.KvKeyPart;
-  read(options?: ReadOptions): ReadableStream<T>;
+  read(options?: PaleonStorageReadOptions): ReadableStream<T>;
   write(value: T): Promise<Deno.KvCommitResult>;
   erase(): Promise<void>;
   close(): void;
 };
 
-export interface PaleonRecord {
+export type PaleonStorageRecord = {
   datetime: Date;
-}
+};
 
-export type ReadOptions = {
+export const PaleonStorageRecord = {
+  fromPayload(payload: PaleonPayload): PaleonStorageRecord {
+    return {
+      ...payload,
+      datetime: new Date(payload.datetime),
+    };
+  },
+};
+
+export interface PaleonStorageReadOptions {
   since?: Date;
   until?: Date;
   limit?: number;
   reverse?: boolean;
-};
+}
 
-export const Paleon = {
-  async open<T extends PaleonRecord>(
+export const PaleonStorage = {
+  async open<T extends PaleonStorageRecord>(
     subject: Deno.KvKey | Deno.KvKeyPart,
-  ): Promise<Paleon<T>> {
+  ): Promise<PaleonStorage<T>> {
     const prefix = [subject].flat();
     const kv = await Deno.openKv();
 
@@ -37,7 +48,7 @@ export const Paleon = {
         return kv.set(key, record);
       },
 
-      read(options?: ReadOptions) {
+      read(options?: PaleonStorageReadOptions) {
         const start = [...prefix, options?.since?.getTime() ?? 0];
         const end = [...prefix, options?.until?.getTime() ?? Infinity];
         const limit = options?.limit ?? 10;
@@ -68,10 +79,14 @@ export const Paleon = {
   },
 };
 
-export class PaleonHandler extends BaseHandler {
-  readonly #_paleon: Paleon;
+export class LocalPaleonHandler extends BaseHandler {
+  readonly #_paleon: PaleonStorage;
 
-  constructor(paleon: Paleon, levelName: LevelName, options?: HandlerOptions) {
+  constructor(
+    paleon: PaleonStorage,
+    levelName: LevelName,
+    options?: HandlerOptions,
+  ) {
     super(levelName, options);
     this.#_paleon = paleon;
   }
@@ -80,11 +95,64 @@ export class PaleonHandler extends BaseHandler {
     levelName: LevelName,
     options?: HandlerOptions,
   ) {
-    const paleon = await Paleon.open<T>("logs");
-    return new PaleonHandler(paleon, levelName, options);
+    const paleon = await PaleonStorage.open<T>("logs");
+    return new LocalPaleonHandler(paleon, levelName, options);
   }
 
   override handle(logRecord: LogRecord): Promise<Deno.KvCommitResult> {
     return this.#_paleon.write(logRecord);
+  }
+}
+
+export type PaleonPayload = Record<string, unknown> & {
+  datetime: number;
+};
+
+export const PaleonPayload = {
+  fromLogRecord(record: LogRecord): PaleonPayload {
+    return {
+      ...record,
+      args: record.args,
+      datetime: record.datetime.getTime(),
+    };
+  },
+};
+
+export interface PaleonHandlerOptions {
+  project: string;
+  url?: string;
+  id?: string;
+}
+
+export class PaleonHandler extends BaseHandler {
+  readonly url: string;
+  readonly project: string;
+  readonly id: string;
+
+  constructor(
+    levelName: LevelName,
+    options: HandlerOptions & PaleonHandlerOptions,
+  ) {
+    super(levelName, options);
+
+    this.url = options.url ?? "https://paleon.deno.dev";
+    this.project = options.project;
+    this.id = options.id ?? Deno.env.get("DEPLOYMENT_ID") ?? "dev";
+  }
+
+  override async handle(logRecord: LogRecord) {
+    const payload = PaleonPayload.fromLogRecord(logRecord);
+
+    const res = await fetch(`${this.url}/${this.project}/${this.id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to send log to Paleon", { cause: res });
+    }
   }
 }

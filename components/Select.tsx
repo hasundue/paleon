@@ -24,12 +24,13 @@ export function Select(props: SelectProps) {
       <option disabled>{props.name}</option>
 
       {options.map((it) => (
-        <option 
+        <option
           value={it.value}
           selected={it.selected}
-        >{it.text ?? it.value}</option>
+        >
+          {it.text ?? it.value}
+        </option>
       ))}
     </select>
   );
 }
-

@@ -1,10 +1,10 @@
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
-import { RecordItem } from "/shared/api.ts";
-import { Select } from "/components/Select.tsx";
+import { AppLogRecordItem } from "../shared/api.ts";
+import { Select } from "../components/Select.tsx";
 
 interface LogViewProps {
-  init: RecordItem[];
+  init: AppLogRecordItem[];
   options: {
     project: string;
     id: string;
@@ -15,7 +15,7 @@ interface LogViewProps {
 
 export default function LogView(props: LogViewProps) {
   const options = useSignal(props.options);
-  const records = useSignal<RecordItem[]>([]);
+  const records = useSignal<AppLogRecordItem[]>(props.init);
 
   useEffect(() => {
     records.value = [];
@@ -23,7 +23,7 @@ export default function LogView(props: LogViewProps) {
       new URL(window.location.href),
     );
     source.onmessage = (ev) => {
-      const record = JSON.parse(ev.data) as RecordItem;
+      const record = JSON.parse(ev.data) as AppLogRecordItem;
       records.value = [...records.value, record];
     };
   }, [options]);
@@ -61,10 +61,10 @@ export default function LogView(props: LogViewProps) {
         <pre style="padding-top: 0.1rem; padding-bottom: 0.1rem">
           <code>
             <p>
-              {record.body}
+              {record.msg}
             </p>
             <p style="color: grey; font-size: 0.96rem; text-align: right">
-              {record.timestamp} @ region
+              {record.datetime} @ region
             </p>
           </code>
         </pre>
