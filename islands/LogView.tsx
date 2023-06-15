@@ -3,7 +3,7 @@ import { useEffect } from "preact/hooks";
 import { RecordItem } from "/shared/api.ts";
 import { Select } from "/components/Select.tsx";
 
-interface RecordsProps {
+interface LogViewProps {
   init: RecordItem[];
   options: {
     project: string;
@@ -13,14 +13,14 @@ interface RecordsProps {
   };
 }
 
-export default function LogView(props: RecordsProps) {
-  const options = useSignal(props);
+export default function LogView(props: LogViewProps) {
+  const options = useSignal(props.options);
   const records = useSignal<RecordItem[]>([]);
 
   useEffect(() => {
     records.value = [];
     const source = new EventSource(
-      new URL("/api/records", window.location.href),
+      new URL(window.location.href),
     );
     source.onmessage = (ev) => {
       const record = JSON.parse(ev.data) as RecordItem;
@@ -41,6 +41,9 @@ export default function LogView(props: RecordsProps) {
           name="Log Level"
           options={[
             { value: "debug", text: "Debug" },
+            { value: "info", text: "Info", selected: true },
+            { value: "warn", text: "Warn" },
+            { value: "error", text: "Error" },
           ]}
         />
         <Select

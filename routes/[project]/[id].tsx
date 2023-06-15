@@ -5,7 +5,7 @@ import {
   ServerSentEventStreamTarget,
 } from "$std/http/server_sent_event.ts";
 import { collect } from "$streamtools/collect.ts";
-import { Log, LogRecord } from "/mod.ts";
+import { Log, PaleonRecord } from "/mod.ts";
 import { RecordItem } from "/shared/api.ts";
 import Head from "/components/Head.tsx";
 import Header from "/components/Header.tsx";
@@ -46,8 +46,8 @@ export const handler: Handlers = {
     }
 
     const items = records.pipeThrough(
-      new TransformStream<LogRecord<string>, RecordItem>({
-        transform(record: LogRecord<string>, controller) {
+      new TransformStream<PaleonRecord<string>, RecordItem>({
+        transform(record: PaleonRecord<string>, controller) {
           controller.enqueue({
             body: record.body,
             timestamp: format(new Date(record.time), "yyyy-MM-dd HH:mm:ss"),
@@ -68,7 +68,7 @@ export default function App(props: AppProps) {
       <Head />
       <body>
         <header style="padding-bottom: 0">
-          <Header current="Home" />
+          <Header current="App" />
         </header>
         <div>
           <h3>🔎 Logs</h3>

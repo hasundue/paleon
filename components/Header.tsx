@@ -4,7 +4,7 @@ const pages = [
   { name: "Home", href: "/", emoji: "🏠" },
   { name: "App", href: `/paleon/${id}`, emoji: "🔎" },
   { name: "Doc", href: "/doc", emoji: "📚" },
-  { name: "GitHub", href: "https://github.com/hasundue/paleon", emoji: "📜" },
+  { name: "Source", href: "https://github.com/hasundue/paleon", emoji: "📜" },
 ] as const;
 
 type Page = typeof pages[number]["name"];
