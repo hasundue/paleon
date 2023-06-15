@@ -4,8 +4,8 @@ import { collect } from "$streamtools/mod.ts";
 import { PaleonStorage } from "../mod.ts";
 
 type TestLogRecord = {
-  datetime: Date;
   msg: string;
+  datetime: Date;
 };
 
 describe("PaleonStorage", () => {
