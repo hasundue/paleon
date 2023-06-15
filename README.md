@@ -1,12 +1,20 @@
 # 🦕 Paleon
 
-Logging service and module with Deno Deploy and Deno KV.
+Logging service and module with Deno KV.
+
+## Features
+
+- Time-series data storage built upon Deno KV
+- Realtime log streaming with SSE and BroadcastChannel
 
 ## Usage
 
 ### Paleon App @`paleon.deno.dev`
 
 You can start persisting logs with the hosted Paleon App immediately!
+
+> **Warning**: No access control is implemented yet. Do not use it for sensitive
+> data.
 
 #### Push logs with a custom handler for `std/log`
 
@@ -35,7 +43,8 @@ logger.info("Hello Paleon!");
 
 #### See logs on Web
 
-Access `https://paleon.deno.dev/my-project/{DENO_DEPLOYMENT_ID}` to see your logs. 
+Access `https://paleon.deno.dev/my-project/{DENO_DEPLOYMENT_ID}` to see your
+logs.
 
 #### Retrieve logs with SDK
 
@@ -73,4 +82,5 @@ await paleon.write({ datetime: new Date(), msg: "hello" });
 
 for await (const record of paleon.read()) {
   console.log(record);
-};
+}
+```
