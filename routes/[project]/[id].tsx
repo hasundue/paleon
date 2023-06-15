@@ -33,7 +33,7 @@ export const handler: Handlers = {
     const options: LogViewOptions = {
       region: params.get("region") ?? "all",
       level: params.get("level") as LogLevel | null ?? "info",
-      period: params.get("since") as LogPeriod | null ?? "day",
+      period: params.get("period") as LogPeriod | null ?? "day",
       reverse: params.get("reverse") === "false" ? false : true,
     };
 

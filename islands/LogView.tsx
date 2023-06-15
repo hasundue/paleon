@@ -10,25 +10,22 @@ import {
 import { Select } from "../components/Select.tsx";
 
 export default function LogView(props: LogViewProps) {
-  const options = useSignal(props.options);
   const items = useSignal<PaleonAppRecordItem[]>(props.init);
 
   useEffect(() => {
     const source = new EventSource(
       window.location.href,
     );
-
     source.addEventListener("message", (ev: MessageEvent<string>) => {
       const item = JSON.parse(ev.data) as PaleonAppRecordItem;
       items.value = props.options.reverse
         ? [item, ...items.value]
         : [...items.value, item];
     });
-
     source.addEventListener("error", () => {
       source.close();
     });
-  }, [options]);
+  }, [props]);
 
   const submit: JSX.GenericEventHandler<HTMLSelectElement> = () => {
     const form = document.getElementById("options") as HTMLFormElement;
