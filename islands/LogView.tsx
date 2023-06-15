@@ -10,23 +10,21 @@ import {
 import { Select } from "../components/Select.tsx";
 
 export default function LogView(props: LogViewProps) {
-  // const options = useSignal(props.options);
-  const records = useSignal<PaleonAppRecordItem[]>(props.init);
+  const options = useSignal(props.options);
+  const items = useSignal<PaleonAppRecordItem[]>(props.init);
 
-  // useEffect(() => {
-  //   records.value = [];
+  useEffect(() => {
+    const source = new EventSource(
+      window.location.href,
+    );
 
-  //   const level = options.value?.level ?? INFO;
-
-  //   const source = new EventSource(
-  //     window.location.href + `?level=${level}`,
-  //   );
-
-  //   source.onmessage = (ev) => {
-  //     const record = JSON.parse(ev.data) as PaleonAppRecordItem;
-  //     records.value = [...records.value, record];
-  //   };
-  // }, [options]);
+    source.onmessage = (ev: MessageEvent<string>) => {
+      const item = JSON.parse(ev.data) as PaleonAppRecordItem;
+      items.value = props.options.reverse
+        ? [item, ...items.value]
+        : [...items.value, item];
+    };
+  }, [options]);
 
   const submit: JSX.GenericEventHandler<HTMLSelectElement> = () => {
     const form = document.getElementById("options") as HTMLFormElement;
@@ -66,14 +64,14 @@ export default function LogView(props: LogViewProps) {
         />
       </form>
 
-      {records.value.map((record) => (
+      {items.value.map((item) => (
         <pre style="padding-top: 0.1rem; padding-bottom: 0.1rem">
           <code>
             <p>
-              {record.msg}
+              {item.msg}
             </p>
             <p style="color: grey; font-size: 0.96rem; text-align: right">
-              {record.datetime} @ region
+              {item.datetime} @ {item.region}
             </p>
           </code>
         </pre>

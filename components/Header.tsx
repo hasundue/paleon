@@ -2,7 +2,7 @@ const id = Deno.env.get("DEPLOYMENT_ID") ?? "dev";
 
 const pages = [
   { name: "Home", href: "/", emoji: "🏠" },
-  { name: "App", href: `/paleon/${id}`, emoji: "🔎" },
+  { name: "Logs", href: `/paleon/${id}`, emoji: "🔎" },
   { name: "Doc", href: "/doc", emoji: "📚" },
   { name: "Source", href: "https://github.com/hasundue/paleon", emoji: "📜" },
 ] as const;

@@ -1,4 +1,8 @@
 export const DateTime = {
+  get now() {
+    return new Date();
+  },
+
   ago: {
     get day() {
       return new Date(new Date().setHours(0, 0, 0, 0));

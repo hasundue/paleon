@@ -50,6 +50,7 @@ export const PaleonAppPayload = {
 export type PaleonAppRecord = Omit<LogRecord, "#args" | "datetime"> & {
   args: unknown[];
   datetime: Date;
+  region: string;
 };
 
 export const PaleonAppRecord = {
@@ -64,12 +65,13 @@ export const PaleonAppRecord = {
 export type PaleonAppRecordItem = {
   msg: string;
   datetime: string;
+  region: string;
 };
 
 export const PaleonAppRecordItem = {
   from(record: PaleonAppRecord): PaleonAppRecordItem {
     return {
-      msg: record.msg,
+      ...record,
       datetime: format(new Date(record.datetime), "yyyy-MM-dd HH:mm:ss"),
     };
   },

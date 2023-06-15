@@ -42,31 +42,40 @@ export const handler: Handlers = {
       since: DateTime.ago[options.period],
     };
 
-    const storage = await PaleonStorage.open<PaleonAppRecord>([project, id]);
-    const records = storage.read({ since: _options.since });
-
-    const target = new ServerSentEventStreamTarget();
-
+    //
+    // Server-Sent Events for hydration
+    //
     if (req.headers.get("accept") === "text/event-stream") {
-      await records.pipeTo(
-        new WritableStream({
-          write(record) {
-            if (record.level >= _options.level) {
-              const ev = new ServerSentEvent("message", {
-                data: PaleonAppRecordItem.from(record),
-              });
-              target.dispatchEvent(ev);
-            }
-          },
-        }),
-      );
-      target.addEventListener("close", () => {
-        storage.close();
+      const target = new ServerSentEventStreamTarget();
+      const ch = new BroadcastChannel(`/${project}/${id}`);
+
+      ch.addEventListener("message", (ev: MessageEvent<string>) => {
+        const payload = JSON.parse(ev.data) as PaleonAppPayload;
+        const record = PaleonAppRecord.from(payload);
+
+        if (
+          record.level >= _options.level && record.datetime >= _options.since
+        ) {
+          const ev = new ServerSentEvent("message", {
+            data: JSON.stringify(PaleonAppRecordItem.from(record)),
+          });
+          target.dispatchEvent(ev);
+        }
       });
+
+      target.addEventListener("close", () => {
+        ch.close();
+      });
+
       return target.asResponse();
     }
 
-    const items = records.pipeThrough(
+    //
+    // SSR
+    //
+    const storage = await PaleonStorage.open<PaleonAppRecord>([project, id]);
+
+    const items = storage.read({ since: _options.since }).pipeThrough(
       new TransformStream<PaleonAppRecord, PaleonAppRecordItem>({
         transform(record, controller) {
           if (record.level >= _options.level) {
@@ -82,18 +91,21 @@ export const handler: Handlers = {
   async POST(req, ctx) {
     const { project, id } = ctx.params;
 
-    const storage = await PaleonStorage.open<PaleonAppRecord>([project, id]);
     const payload = await req.json() as PaleonAppPayload;
     const record = PaleonAppRecord.from(payload);
 
-    storage.write(record);
+    const ch = new BroadcastChannel(`/${project}/${id}`);
+    ch.postMessage(JSON.stringify(payload));
+
+    const storage = await PaleonStorage.open<PaleonAppRecord>([project, id]);
+    await storage.write(record);
     storage.close();
 
-    return Response.json({ status: 201 });
+    return Response.json({ ok: true });
   },
 };
 
-export default function App(props: AppProps) {
+export default function Logs(props: AppProps) {
   const { project, id } = props.params;
   const { init, options } = props.data;
 
