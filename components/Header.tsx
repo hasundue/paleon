@@ -1,4 +1,4 @@
-const id = Deno.env.get("DEPLOYMENT_ID") ?? "dev";
+const id = Deno.env.get("DENO_DEPLOYMENT_ID") ?? "dev";
 
 const pages = [
   { name: "Home", href: "/", emoji: "🏠" },

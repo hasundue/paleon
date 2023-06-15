@@ -124,7 +124,7 @@ export class PaleonAppHandler extends BaseHandler {
 
     this.url = options.url ?? "https://paleon.deno.dev";
     this.project = options.project;
-    this.id = options.id ?? Deno.env.get("DEPLOYMENT_ID") ?? "dev";
+    this.id = options.id ?? Deno.env.get("DENO_DEPLOYMENT_ID") ?? "dev";
   }
 
   override async handle(logRecord: LogRecord) {

@@ -42,9 +42,7 @@ export const handler: Handlers = {
       since: DateTime.ago[options.period],
     };
 
-    //
     // Server-Sent Events for hydration
-    //
     if (req.headers.get("accept") === "text/event-stream") {
       const target = new ServerSentEventStreamTarget();
       const ch = new BroadcastChannel(`/${project}/${id}`);
@@ -70,9 +68,7 @@ export const handler: Handlers = {
       return target.asResponse();
     }
 
-    //
-    // SSR
-    //
+    // SSR of initial data
     const storage = await PaleonStorage.open<PaleonAppRecord>([project, id]);
 
     const items = storage.read({ since: _options.since }).pipeThrough(
@@ -113,7 +109,7 @@ export default function Logs(props: AppProps) {
     <>
       <Head />
       <body>
-        <Header current="App" />
+        <Header current="Logs" />
         <div>
           <h3>🔎 Logs</h3>
           <LogView project={project} id={id} init={init} options={options} />

@@ -2,7 +2,7 @@ import { MiddlewareHandlerContext } from "$fresh/server.ts";
 import { PaleonAppHandler } from "../mod.ts";
 import * as log from "$std/log/mod.ts";
 
-const id = Deno.env.get("DEPLOYMENT_ID");
+const id = Deno.env.get("DENO_DEPLOYMENT_ID");
 
 log.setup({
   handlers: {
