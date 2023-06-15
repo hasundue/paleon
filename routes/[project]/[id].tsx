@@ -10,18 +10,18 @@ import {
   LogLevel,
   LogLevelMap,
   LogPeriod,
-  LogViewOptions,
   PaleonAppPayload,
   PaleonAppRecord,
   PaleonAppRecordItem,
+  PaleonAppRequestOptions,
 } from "../../shared/api.ts";
 import Head from "../../components/Head.tsx";
 import Header from "../../components/Header.tsx";
 import LogView from "../../islands/LogView.tsx";
 
-type AppProps = PageProps<{
+type LogsProps = PageProps<{
   init: PaleonAppRecordItem[];
-  options: LogViewOptions;
+  options: PaleonAppRequestOptions;
 }>;
 
 export const handler: Handlers = {
@@ -30,7 +30,7 @@ export const handler: Handlers = {
 
     const params = new URL(req.url).searchParams;
 
-    const options: LogViewOptions = {
+    const options: PaleonAppRequestOptions = {
       region: params.get("region") ?? "all",
       level: params.get("level") as LogLevel | null ?? "info",
       period: params.get("period") as LogPeriod | null ?? "day",
@@ -50,7 +50,7 @@ export const handler: Handlers = {
 
       ch.addEventListener("message", (ev: MessageEvent<string>) => {
         const payload = JSON.parse(ev.data) as PaleonAppPayload;
-        const record = PaleonAppRecord.from(payload);
+        const record = PaleonAppRecord.fromPayload(payload);
 
         if (
           record.level >= _options.level && record.datetime >= _options.since
@@ -76,12 +76,19 @@ export const handler: Handlers = {
     const storage = await PaleonStorage.open<PaleonAppRecord>([project, id]);
     let count = 0;
 
-    const readable = storage.read({
+    const records = storage.read({
       since: _options.since,
       reverse: options.reverse,
     });
 
-    const items = readable.pipeThrough(
+    if (req.headers.get("accept") === "application/json") {
+      const payloads = (await collect(records)).map((record) =>
+        PaleonAppRecordItem.from(record)
+      );
+      return Response.json(payloads);
+    }
+
+    const items = records.pipeThrough(
       new TransformStream<PaleonAppRecord, PaleonAppRecordItem>({
         transform(record, controller) {
           if (record.level >= _options.level) {
@@ -102,7 +109,7 @@ export const handler: Handlers = {
     const { project, id } = ctx.params;
 
     const payload = await req.json() as PaleonAppPayload;
-    const record = PaleonAppRecord.from(payload);
+    const record = PaleonAppRecord.fromPayload(payload);
 
     const ch = new BroadcastChannel(`${project}/${id}`);
     ch.postMessage(JSON.stringify(payload));
@@ -115,7 +122,7 @@ export const handler: Handlers = {
   },
 };
 
-export default function Logs(props: AppProps) {
+export default function Logs(props: LogsProps) {
   const { project, id } = props.params;
   const { init, options } = props.data;
 

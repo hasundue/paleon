@@ -4,12 +4,12 @@ import { useEffect } from "preact/hooks";
 import {
   LOG_LEVELS,
   LOG_PERIODS,
-  LogViewProps,
+  PaleonAppProps,
   PaleonAppRecordItem,
 } from "../shared/api.ts";
 import { Select } from "../components/Select.tsx";
 
-export default function LogView(props: LogViewProps) {
+export default function LogView(props: PaleonAppProps) {
   const project = useSignal(props.project);
   const id = useSignal(props.id);
   const items = useSignal<PaleonAppRecordItem[]>(props.init);

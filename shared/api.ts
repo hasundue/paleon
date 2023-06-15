@@ -17,7 +17,7 @@ export const LogLevelMap = {
 export const LOG_PERIODS = ["hour", "day", "week", "month"] as const;
 export type LogPeriod = typeof LOG_PERIODS[number];
 
-export interface LogViewOptions {
+export interface PaleonAppRequestOptions {
   region: string;
   level: LogLevel;
   limit: number;
@@ -25,11 +25,11 @@ export interface LogViewOptions {
   reverse: boolean;
 }
 
-export interface LogViewProps {
+export interface PaleonAppProps {
   init: PaleonAppRecordItem[];
   project: string;
   id: string;
-  options: LogViewOptions;
+  options: PaleonAppRequestOptions;
 }
 
 export type PaleonAppPayload = Omit<LogRecord, "datetime"> & {
@@ -38,11 +38,19 @@ export type PaleonAppPayload = Omit<LogRecord, "datetime"> & {
 };
 
 export const PaleonAppPayload = {
-  from(record: LogRecord): PaleonAppPayload {
+  fromLogRecord(record: LogRecord): PaleonAppPayload {
     return {
       ...record,
       args: record.args,
       region: Deno.env.get("DENO_REGION") ?? "local",
+      datetime: record.datetime.getTime(),
+    };
+  },
+  fromRecord(record: PaleonAppRecord): PaleonAppPayload {
+    return {
+      ...record,
+      args: record.args,
+      region: record.region,
       datetime: record.datetime.getTime(),
     };
   },
@@ -55,7 +63,7 @@ export type PaleonAppRecord = Omit<LogRecord, "#args" | "datetime"> & {
 };
 
 export const PaleonAppRecord = {
-  from(payload: PaleonAppPayload): PaleonAppRecord {
+  fromPayload(payload: PaleonAppPayload): PaleonAppRecord {
     return {
       ...payload,
       datetime: new Date(payload.datetime),

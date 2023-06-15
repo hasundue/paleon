@@ -38,12 +38,12 @@ class LocalPaleonHandler extends BaseHandler {
   }
 
   override handle(logRecord: LogRecord): Promise<Deno.KvCommitResult> {
-    const payload = PaleonAppPayload.from(logRecord);
+    const payload = PaleonAppPayload.fromLogRecord(logRecord);
 
     const ch = new BroadcastChannel(`paleon/${DEPLOYMENT_ID}`);
     ch.postMessage(JSON.stringify(payload));
 
-    return this.#_paleon.write(PaleonAppRecord.from(payload));
+    return this.#_paleon.write(PaleonAppRecord.fromPayload(payload));
   }
 }
 
