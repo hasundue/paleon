@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "$std/testing/asserts.ts";
 import { afterAll, beforeAll, describe, it } from "$std/testing/bdd.ts";
 import { collect } from "$streamtools/mod.ts";
-import { PaleonStorage } from "/mod.ts";
+import { PaleonStorage } from "../mod.ts";
 
 type TestLogRecord = {
   datetime: Date;
