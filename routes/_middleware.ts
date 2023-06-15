@@ -10,6 +10,7 @@ log.setup({
 
     paleon: new PaleonAppHandler("DEBUG", {
       url: id ? "https://paleon.deno.dev" : "http://localhost:8000",
+      id: id ?? "dev",
       project: "paleon",
     }),
   },

@@ -85,6 +85,7 @@ export const handler: Handlers = {
   },
 
   async POST(req, ctx) {
+    console.debug(req);
     const { project, id } = ctx.params;
 
     const payload = await req.json() as PaleonAppPayload;

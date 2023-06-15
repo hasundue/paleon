@@ -137,6 +137,7 @@ export class PaleonAppHandler extends BaseHandler {
       },
       body: JSON.stringify(payload),
     });
+    console.debug(res);
 
     if (!res.ok) {
       throw new Error("Failed to send log to Paleon", { cause: res });
