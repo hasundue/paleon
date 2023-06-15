@@ -74,48 +74,6 @@ export const PaleonStorage = {
   },
 };
 
-interface LocalPaleonHandlerInit {
-  subject: Deno.KvKey | Deno.KvKeyPart;
-  broadcast?: boolean;
-}
-
-/**
- * A handler that writes log records to a local Paleon storage.
- */
-export class LocalPaleonHandler extends BaseHandler {
-  readonly #_paleon: PaleonStorage;
-  protected readonly _subject: Deno.KvKey;
-  protected readonly _broadcast?: boolean;
-
-  constructor(
-    paleon: PaleonStorage,
-    levelName: LevelName,
-    options: HandlerOptions & LocalPaleonHandlerInit,
-  ) {
-    super(levelName, options);
-    this.#_paleon = paleon;
-    this._subject = [options.subject].flat();
-    this._broadcast = options.broadcast;
-  }
-
-  static async init<T extends LogRecord = LogRecord>(
-    levelName: LevelName,
-    options: HandlerOptions & LocalPaleonHandlerInit,
-  ) {
-    const paleon = await PaleonStorage.open<T>([options.subject].flat());
-    return new LocalPaleonHandler(paleon, levelName, options);
-  }
-
-  override handle(logRecord: LogRecord): Promise<Deno.KvCommitResult> {
-    if (this._broadcast) {
-      const ch = new BroadcastChannel(this._subject.join("/"));
-      const payload = PaleonAppPayload.from(logRecord);
-      ch.postMessage(JSON.stringify(payload));
-    }
-    return this.#_paleon.write(logRecord);
-  }
-}
-
 export interface PaleonAppInit {
   project: string;
   url?: string;
