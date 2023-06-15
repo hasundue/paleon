@@ -76,7 +76,11 @@ export const handler: Handlers = {
     const storage = await PaleonStorage.open<PaleonAppRecord>([project, id]);
     let count = 0;
 
-    const items = storage.read({ since: _options.since }).pipeThrough(
+    const readable = storage.read({
+      since: _options.since,
+      reverse: options.reverse,
+    });
+    const items = readable.pipeThrough(
       new TransformStream<PaleonAppRecord, PaleonAppRecordItem>({
         transform(record, controller) {
           if (record.level >= _options.level) {

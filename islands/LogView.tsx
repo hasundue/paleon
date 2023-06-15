@@ -68,6 +68,23 @@ export default function LogView(props: LogViewProps) {
           }))}
           onChange={submit}
         />
+        <Select
+          name="reverse"
+          label="Order"
+          options={[
+            {
+              value: "true",
+              text: "Descending",
+              selected: props.options.reverse ? true : undefined,
+            },
+            {
+              value: "false",
+              text: "Ascending",
+              selected: props.options.reverse ? undefined : true,
+            },
+          ]}
+          onChange={submit}
+        />
       </form>
 
       {items.value.map((item) => (
