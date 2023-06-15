@@ -18,12 +18,16 @@ export default function LogView(props: LogViewProps) {
       window.location.href,
     );
 
-    source.onmessage = (ev: MessageEvent<string>) => {
+    source.addEventListener("message", (ev: MessageEvent<string>) => {
       const item = JSON.parse(ev.data) as PaleonAppRecordItem;
       items.value = props.options.reverse
         ? [item, ...items.value]
         : [...items.value, item];
-    };
+    });
+
+    source.addEventListener("error", () => {
+      source.close();
+    });
   }, [options]);
 
   const submit: JSX.GenericEventHandler<HTMLSelectElement> = () => {

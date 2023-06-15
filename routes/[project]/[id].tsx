@@ -65,6 +65,10 @@ export const handler: Handlers = {
         ch.close();
       });
 
+      target.addEventListener("error", () => {
+        ch.close();
+      });
+
       return target.asResponse();
     }
 
