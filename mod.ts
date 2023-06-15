@@ -74,30 +74,44 @@ export const PaleonStorage = {
   },
 };
 
+interface LocalPaleonHandlerInit {
+  subject: Deno.KvKey | Deno.KvKeyPart;
+  broadcast?: boolean;
+}
+
 /**
  * A handler that writes log records to a local Paleon storage.
  */
 export class LocalPaleonHandler extends BaseHandler {
   readonly #_paleon: PaleonStorage;
+  protected readonly _subject: Deno.KvKey;
+  protected readonly _broadcast?: boolean;
 
   constructor(
     paleon: PaleonStorage,
     levelName: LevelName,
-    options?: HandlerOptions,
+    options: HandlerOptions & LocalPaleonHandlerInit,
   ) {
     super(levelName, options);
     this.#_paleon = paleon;
+    this._subject = [options.subject].flat();
+    this._broadcast = options.broadcast;
   }
 
   static async init<T extends LogRecord = LogRecord>(
     levelName: LevelName,
-    options?: HandlerOptions,
+    options: HandlerOptions & LocalPaleonHandlerInit,
   ) {
-    const paleon = await PaleonStorage.open<T>("logs");
+    const paleon = await PaleonStorage.open<T>([options.subject].flat());
     return new LocalPaleonHandler(paleon, levelName, options);
   }
 
   override handle(logRecord: LogRecord): Promise<Deno.KvCommitResult> {
+    if (this._broadcast) {
+      const ch = new BroadcastChannel(this._subject.join("/"));
+      const payload = PaleonAppPayload.from(logRecord);
+      ch.postMessage(JSON.stringify(payload));
+    }
     return this.#_paleon.write(logRecord);
   }
 }
@@ -112,9 +126,9 @@ export interface PaleonAppInit {
  * A handler that sends log records to the Paleon app.
  */
 export class PaleonAppHandler extends BaseHandler {
-  readonly url: string;
-  readonly project: string;
-  readonly id: string;
+  protected readonly _url: string;
+  protected readonly _project: string;
+  protected readonly _id: string;
 
   constructor(
     levelName: LevelName,
@@ -122,22 +136,21 @@ export class PaleonAppHandler extends BaseHandler {
   ) {
     super(levelName, options);
 
-    this.url = options.url ?? "https://paleon.deno.dev";
-    this.project = options.project;
-    this.id = options.id ?? Deno.env.get("DENO_DEPLOYMENT_ID") ?? "dev";
+    this._url = options.url ?? "https://paleon.deno.dev";
+    this._project = options.project;
+    this._id = options.id ?? Deno.env.get("DENO_DEPLOYMENT_ID") ?? "dev";
   }
 
   override async handle(logRecord: LogRecord) {
     const payload = PaleonAppPayload.from(logRecord);
 
-    const res = await fetch(`${this.url}/${this.project}/${this.id}`, {
+    const res = await fetch(`${this._url}/${this._project}/${this._id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     });
-    console.debug(res);
 
     if (!res.ok) {
       throw new Error("Failed to send log to Paleon", { cause: res });

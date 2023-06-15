@@ -45,7 +45,7 @@ export const handler: Handlers = {
     // Server-Sent Events for hydration
     if (req.headers.get("accept") === "text/event-stream") {
       const target = new ServerSentEventStreamTarget();
-      const ch = new BroadcastChannel(`/${project}/${id}`);
+      const ch = new BroadcastChannel(`${project}/${id}`);
 
       ch.addEventListener("message", (ev: MessageEvent<string>) => {
         const payload = JSON.parse(ev.data) as PaleonAppPayload;
@@ -85,13 +85,12 @@ export const handler: Handlers = {
   },
 
   async POST(req, ctx) {
-    console.debug(req);
     const { project, id } = ctx.params;
 
     const payload = await req.json() as PaleonAppPayload;
     const record = PaleonAppRecord.from(payload);
 
-    const ch = new BroadcastChannel(`/${project}/${id}`);
+    const ch = new BroadcastChannel(`${project}/${id}`);
     ch.postMessage(JSON.stringify(payload));
 
     const storage = await PaleonStorage.open<PaleonAppRecord>([project, id]);
