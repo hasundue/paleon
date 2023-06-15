@@ -132,9 +132,9 @@ export default function Logs(props: LogsProps) {
       <body>
         <Header current="Logs" />
         <div>
-          <h3>🔎 Logs</h3>
-          <LogView project={project} id={id} init={init} options={options} />
+          <h2>🔎 Logs</h2>
         </div>
+        <LogView project={project} id={id} init={init} options={options} />
       </body>
     </>
   );
