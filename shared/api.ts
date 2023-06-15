@@ -1,29 +1,73 @@
-import { PaleonPayload } from "../mod.ts";
+import { type LogRecord } from "$std/log/mod.ts";
 import { format } from "$std/datetime/format.ts";
+import { LogLevels } from "$std/log/levels.ts";
 
-export type AppLogRecord = {
-  msg: string;
-  datetime: Date;
-  args?: unknown[];
+export const LOG_LEVELS = ["debug", "info", "warn", "error"] as const;
+export type LogLevel = typeof LOG_LEVELS[number];
+
+const { DEBUG, INFO, WARNING, ERROR } = LogLevels;
+
+export const LogLevelMap = {
+  debug: DEBUG,
+  info: INFO,
+  warn: WARNING,
+  error: ERROR,
+} as const;
+
+export const LOG_PERIODS = ["hour", "day", "week", "month"] as const;
+export type LogPeriod = typeof LOG_PERIODS[number];
+
+export interface LogViewOptions {
+  region: string;
+  period: LogPeriod;
+  level: LogLevel;
+  reverse: boolean;
+}
+
+export interface LogViewProps {
+  init: PaleonAppRecordItem[];
+  project: string;
+  id: string;
+  options: LogViewOptions;
+}
+
+export type PaleonAppPayload = Omit<LogRecord, "datetime"> & {
+  region: string;
+  datetime: number;
 };
 
-export const AppLogRecord = {
-  from(payload: PaleonPayload): AppLogRecord {
+export const PaleonAppPayload = {
+  from(record: LogRecord): PaleonAppPayload {
     return {
-      msg: ("msg" in payload) ? payload.msg as string : "",
-      datetime: new Date(payload.datetime),
-      args: ("args" in payload) ? payload.args as unknown[] : undefined,
+      ...record,
+      args: record.args,
+      region: Deno.env.get("DENO_REGION") ?? "local",
+      datetime: record.datetime.getTime(),
     };
   },
 };
 
-export type AppLogRecordItem = {
+export type PaleonAppRecord = Omit<LogRecord, "#args" | "datetime"> & {
+  args: unknown[];
+  datetime: Date;
+};
+
+export const PaleonAppRecord = {
+  from(payload: PaleonAppPayload): PaleonAppRecord {
+    return {
+      ...payload,
+      datetime: new Date(payload.datetime),
+    };
+  },
+};
+
+export type PaleonAppRecordItem = {
   msg: string;
   datetime: string;
 };
 
-export const AppLogRecordItem = {
-  from(record: AppLogRecord): AppLogRecordItem {
+export const PaleonAppRecordItem = {
+  from(record: PaleonAppRecord): PaleonAppRecordItem {
     return {
       msg: record.msg,
       datetime: format(new Date(record.datetime), "yyyy-MM-dd HH:mm:ss"),

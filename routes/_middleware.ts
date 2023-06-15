@@ -1,13 +1,15 @@
 import { MiddlewareHandlerContext } from "$fresh/server.ts";
-import { PaleonHandler } from "../mod.ts";
+import { PaleonAppHandler } from "../mod.ts";
 import * as log from "$std/log/mod.ts";
+
+const id = Deno.env.get("DEPLOYMENT_ID");
 
 log.setup({
   handlers: {
     console: new log.handlers.ConsoleHandler("DEBUG"),
 
-    paleon: new PaleonHandler("DEBUG", {
-      url: "http://localhost:8000",
+    paleon: new PaleonAppHandler("DEBUG", {
+      url: id ? "https://paleon.deno.dev" : "http://localhost:8000",
       project: "paleon",
     }),
   },
@@ -32,26 +34,19 @@ export async function handler(
   const resp = await ctx.next();
 
   const method = req.method;
-  const pathname = new URL(req.url).pathname;
+  const url = new URL(req.url);
+  const path = url.pathname + url.search;
   const status = resp.status;
 
   if (method === "POST") {
     return resp;
   }
 
-  const msg = `<-- ${method} ${pathname}\n--> ${status}`;
-
-  if (status >= 400) {
-    logger.error(msg);
-  } else if (pathname.startsWith("/_")) {
-    logger.debug(msg);
-  } else {
-    logger.info(msg);
-  }
+  const msg = `<-- ${method} ${path}\n--> ${status}`;
 
   const level = status >= 400
     ? "error"
-    : (pathname.startsWith("/_") ? "debug" : "info");
+    : (path.startsWith("/_") ? "debug" : "info");
 
   logger[level](msg);
 

@@ -1,7 +1,22 @@
 import { BaseHandler, HandlerOptions } from "$std/log/handlers.ts";
 import { type LevelName } from "$std/log/levels.ts";
 import { type LogRecord } from "$std/log/logger.ts";
+import { PaleonAppPayload } from "./shared/api.ts";
 
+export type PaleonStorageRecord = {
+  datetime: Date;
+};
+
+export interface PaleonStorageReadOptions {
+  since?: Date;
+  until?: Date;
+  limit?: number;
+  reverse?: boolean;
+}
+
+/**
+ * Interface for a storage of time series data.
+ */
 export type PaleonStorage<
   T extends PaleonStorageRecord = PaleonStorageRecord,
 > = {
@@ -11,26 +26,6 @@ export type PaleonStorage<
   erase(): Promise<void>;
   close(): void;
 };
-
-export type PaleonStorageRecord = {
-  datetime: Date;
-};
-
-export const PaleonStorageRecord = {
-  fromPayload(payload: PaleonPayload): PaleonStorageRecord {
-    return {
-      ...payload,
-      datetime: new Date(payload.datetime),
-    };
-  },
-};
-
-export interface PaleonStorageReadOptions {
-  since?: Date;
-  until?: Date;
-  limit?: number;
-  reverse?: boolean;
-}
 
 export const PaleonStorage = {
   async open<T extends PaleonStorageRecord>(
@@ -51,7 +46,7 @@ export const PaleonStorage = {
       read(options?: PaleonStorageReadOptions) {
         const start = [...prefix, options?.since?.getTime() ?? 0];
         const end = [...prefix, options?.until?.getTime() ?? Infinity];
-        const limit = options?.limit ?? 10;
+        const limit = options?.limit;
         const reverse = options?.reverse ?? true;
 
         const iter = kv.list<T>({ start, end }, { limit, reverse });
@@ -79,6 +74,9 @@ export const PaleonStorage = {
   },
 };
 
+/**
+ * A handler that writes log records to a local Paleon storage.
+ */
 export class LocalPaleonHandler extends BaseHandler {
   readonly #_paleon: PaleonStorage;
 
@@ -104,34 +102,23 @@ export class LocalPaleonHandler extends BaseHandler {
   }
 }
 
-export type PaleonPayload = Record<string, unknown> & {
-  datetime: number;
-};
-
-export const PaleonPayload = {
-  fromLogRecord(record: LogRecord): PaleonPayload {
-    return {
-      ...record,
-      args: record.args,
-      datetime: record.datetime.getTime(),
-    };
-  },
-};
-
-export interface PaleonHandlerOptions {
+export interface PaleonAppInit {
   project: string;
   url?: string;
   id?: string;
 }
 
-export class PaleonHandler extends BaseHandler {
+/**
+ * A handler that sends log records to the Paleon app.
+ */
+export class PaleonAppHandler extends BaseHandler {
   readonly url: string;
   readonly project: string;
   readonly id: string;
 
   constructor(
     levelName: LevelName,
-    options: HandlerOptions & PaleonHandlerOptions,
+    options: HandlerOptions & PaleonAppInit,
   ) {
     super(levelName, options);
 
@@ -141,7 +128,7 @@ export class PaleonHandler extends BaseHandler {
   }
 
   override async handle(logRecord: LogRecord) {
-    const payload = PaleonPayload.fromLogRecord(logRecord);
+    const payload = PaleonAppPayload.from(logRecord);
 
     const res = await fetch(`${this.url}/${this.project}/${this.id}`, {
       method: "POST",

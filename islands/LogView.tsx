@@ -1,61 +1,70 @@
+import { JSX } from "preact/jsx-runtime";
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
-import { AppLogRecordItem } from "../shared/api.ts";
+import {
+  LOG_LEVELS,
+  LOG_PERIODS,
+  LogViewProps,
+  PaleonAppRecordItem,
+} from "../shared/api.ts";
 import { Select } from "../components/Select.tsx";
 
-interface LogViewProps {
-  init: AppLogRecordItem[];
-  options: {
-    project: string;
-    id: string;
-    since?: Date;
-    until?: Date;
-  };
-}
-
 export default function LogView(props: LogViewProps) {
-  const options = useSignal(props.options);
-  const records = useSignal<AppLogRecordItem[]>(props.init);
+  // const options = useSignal(props.options);
+  const records = useSignal<PaleonAppRecordItem[]>(props.init);
 
-  useEffect(() => {
-    records.value = [];
-    const source = new EventSource(
-      new URL(window.location.href),
-    );
-    source.onmessage = (ev) => {
-      const record = JSON.parse(ev.data) as AppLogRecordItem;
-      records.value = [...records.value, record];
-    };
-  }, [options]);
+  // useEffect(() => {
+  //   records.value = [];
+
+  //   const level = options.value?.level ?? INFO;
+
+  //   const source = new EventSource(
+  //     window.location.href + `?level=${level}`,
+  //   );
+
+  //   source.onmessage = (ev) => {
+  //     const record = JSON.parse(ev.data) as PaleonAppRecordItem;
+  //     records.value = [...records.value, record];
+  //   };
+  // }, [options]);
+
+  const submit: JSX.GenericEventHandler<HTMLSelectElement> = () => {
+    const form = document.getElementById("options") as HTMLFormElement;
+    form.submit();
+  };
 
   return (
     <>
-      <div name="options">
+      <form id="options" method="GET">
         <Select
-          name="Region"
+          name="region"
+          label="Region"
           options={[
             { value: "all", text: "All regions" },
           ]}
+          onChange={submit}
         />
         <Select
-          name="Log Level"
-          options={[
-            { value: "debug", text: "Debug" },
-            { value: "info", text: "Info", selected: true },
-            { value: "warn", text: "Warn" },
-            { value: "error", text: "Error" },
-          ]}
+          name="level"
+          label="Log Level"
+          options={LOG_LEVELS.map((level) => ({
+            value: level,
+            text: level[0].toUpperCase() + level.slice(1),
+            selected: props.options.level === level ? true : undefined,
+          }))}
+          onChange={submit}
         />
         <Select
-          name="Period"
-          options={[
-            { value: "hour", text: "Hour" },
-            { value: "day", text: "Day", selected: true },
-            { value: "week", text: "Week" },
-            { value: "month", text: "Month" },
-          ]}
+          name="period"
+          label="Period"
+          options={LOG_PERIODS.map((period) => ({
+            value: period,
+            text: period[0].toUpperCase() + period.slice(1),
+            selected: props.options.period === period ? true : undefined,
+          }))}
+          onChange={submit}
         />
-      </div>
+      </form>
 
       {records.value.map((record) => (
         <pre style="padding-top: 0.1rem; padding-bottom: 0.1rem">

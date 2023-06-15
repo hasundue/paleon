@@ -1,16 +1,16 @@
 import { JSX } from "preact";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 
-type SelectOption = {
-  value: string;
-  text?: string;
-  selected?: true;
-};
-
 type SelectProps = {
   name: string;
   options?: SelectOption[];
 } & JSX.HTMLAttributes<HTMLSelectElement>;
+
+type SelectOption = {
+  value: string | number;
+  text?: string;
+  selected?: true;
+};
 
 export function Select(props: SelectProps) {
   const options = props.options ?? [];
@@ -21,7 +21,7 @@ export function Select(props: SelectProps) {
       {...props}
       disabled={!IS_BROWSER || props.disabled}
     >
-      <option disabled>{props.name}</option>
+      <option disabled>{props.label ?? props.name}</option>
 
       {options.map((it) => (
         <option
