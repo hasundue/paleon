@@ -1,6 +1,11 @@
 # 🦕 Paleon
 
-Logging service and module with Deno KV.
+A proof-of-concept for a time-series storage and monitoring service, constructed
+using Deno KV.
+
+> **Note**: This project is developed for the
+> [Deno KV Hackathon](https://github.com/denoland/deno-kv-hackathon) and not
+> supposed to be used in practical usecases.
 
 ## Features
 
@@ -9,11 +14,11 @@ Logging service and module with Deno KV.
 
 ## Usage
 
-### Paleon App @`paleon.deno.dev`
+### Paleon SaaS @`paleon.deno.dev`
 
-You can start persisting logs with the hosted Paleon App immediately!
+You can start persisting logs with the hosted Paleon SaaS immediately!
 
-> **Warning**: No access control is implemented yet. Do not use it for sensitive
+> **Warning**: No access control is implemented. Do not use it for sensitive
 > data.
 
 #### Push logs with a custom handler for `std/log`
@@ -25,7 +30,10 @@ import { PaleonAppHandler } from "https://pax.deno.dev/hasundue/paleon/client.ts
 log.setup({
   handlers: {
     console: new log.handlers.ConsoleHandler("DEBUG"),
-    paleon: new PaleonAppHandler("DEBUG", { project: "my-project" }),
+    paleon: new PaleonAppHandler("DEBUG", {
+      project: "{PROJECT_NAME}",
+      id: "{DEPLOYMENT_ID}",
+    }),
   },
 
   loggers: {
@@ -43,15 +51,18 @@ logger.info("Hello Paleon!");
 
 #### See logs on Web
 
-Access `https://paleon.deno.dev/my-project/{DENO_DEPLOYMENT_ID}` to see your
+Access `https://paleon.deno.dev/{PROJECT_NAME}/{DEPLOYMENT_ID}` to see your
 logs.
 
-#### Retrieve logs with SDK
+#### Retrieve logs with the client module
 
 ```ts
 import { PaleonClient } from "https://pax.deno.dev/hasundue/paleon/client.ts";
 
-const paleon = new PaleonClient({ project: "my-project" });
+const paleon = new PaleonClient({
+  project: "{PROJECT_NAME}",
+  id: "{DEPLOYMENT_ID}",
+});
 
 // Get recorded logs
 const logs = await paleon.read({ limit: 10 });
@@ -76,7 +87,7 @@ type TestLogRecord = {
   datetime: Date;
 };
 
-paleon = await PaleonStorage.open<TestLogRecord>("my-app");
+const paleon = await PaleonStorage.open<TestLogRecord>("my-app");
 
 await paleon.write({ datetime: new Date(), msg: "hello" });
 
